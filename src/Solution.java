@@ -102,6 +102,33 @@ public class Solution {
         return res;
     }
 
+    //93
+    public List<String> restoreIpAddresses(String s) {
+        List<String> res = new ArrayList<>();
+        if (s == null || s.length() == 0)
+            return res;
+        restoreHelper(s, 0, 0, "", res);
+        return res;
+    }
+
+    private void restoreHelper(String s, int i, int k, String pre, List<String> res){
+        if (k == 3){
+            String left = s.substring(i);
+            if (isValidIp(left))
+                res.add(pre + left);
+            return;
+        }
+        for (int j = i+1; j <= Math.min(s.length(), i + 3); ++j){
+            String str = s.substring(i, j);
+            if (isValidIp(str))
+                restoreHelper(s, j, k + 1, pre + str + ".", res);
+        }
+    }
+
+    private boolean isValidIp(String s){
+        return s.length() > 0 && s.length() <= 3 && (s.length() > 1? s.charAt(0) != '0': true) && Integer.parseInt(s) <= 255;
+    }
+
     //111
     public int minDepth(TreeNode root) {
         if (root == null)
@@ -254,6 +281,26 @@ public class Solution {
         }
     }
 
+    //220
+    public boolean containsNearbyAlmostDuplicate(int[] nums, int k, int t) {
+        //use sliding window size = k, find at any give nums[i] if exists a ceiling or floor number within t's range
+        if (nums == null || nums.length == 0 || k <= 0)
+            return false;
+        TreeSet<Integer> ts = new TreeSet<>();
+        for (int i = 0; i < nums.length; ++i){
+            //check
+            Integer ceiling = ts.ceiling(nums[i]);
+            Integer floor = ts.floor(nums[i]);
+            if ((ceiling != null && ceiling <= nums[i] + t) || (floor != null && nums[i] <= floor + t)) //note here use + not - to prevent INF - neg overflow!
+                return true;
+            ts.add(nums[i]); //dont forget add in
+            //shrink
+            if (i >= k)
+                ts.remove(nums[i-k]);
+        }
+        return false;
+    }
+
     //226
     public TreeNode invertTree(TreeNode root) {
         if (root == null)
@@ -302,6 +349,55 @@ public class Solution {
             t *= nums[i];
         }
         return res;
+    }
+
+    //243
+    public int shortestDistance(String[] words, String word1, String word2) {
+        if (words == null || words.length < 2 || word1 == null || word2 == null)
+            return -1;
+        int l1 = -1, l2 = -1, res = words.length + 1;
+        for (int i = 0; i < words.length; ++i){
+            if (words[i].equals(word1)){
+                if (l2 != -1)
+                    res = Math.min(res, i - l2);
+                l1 = i; //dont forget to update the found index!
+            }
+            else if (words[i].equals(word2)){
+                if (l1 != -1)
+                    res = Math.min(res, i - l1);
+                l2 = i;
+            }
+        }
+        return res;
+    }
+
+    //247
+    public List<String> findStrobogrammatic(int n) {
+        List<String> res = new ArrayList<>();
+        if (n < 1)
+            return res;
+        findHelper(new char[n], 0, n - 1, res);
+        return res;
+    }
+    private final char[][] stro = {{'0', '0'}, {'1', '1'}, {'8', '8'}, {'6', '9'}, {'9', '6'}};
+    private void findHelper(char[] combi, int l, int r, List<String> res){
+        if (l >= r){
+            if (l == r){
+                for (int i = 0; i < 3; ++i){
+                    combi[l] = stro[i][0];
+                    res.add(new String(combi));
+                }
+            }
+            else
+                res.add(new String(combi));
+            return;
+        }
+        int start = l == 0? 1: 0;
+        for (int i = start; i < stro.length; ++i){
+            combi[l] = stro[i][0];
+            combi[r] = stro[i][1];
+            findHelper(combi, l + 1, r - 1, res);
+        }
     }
 
     //265
