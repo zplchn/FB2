@@ -7,6 +7,7 @@ import java.util.List;
 
 
 class Node {
+
     int val;
     ArrayList<Node>children;
     public Node(int val){
