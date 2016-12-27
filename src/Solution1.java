@@ -1,5 +1,4 @@
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by zplchn on 12/25/16.
@@ -16,6 +15,43 @@ class Node {
     }
 }
 public class Solution1 {
+
+    public Map<Integer, Integer> top5(int[][] scores){
+        Map<Integer, Integer> res = new HashMap<>();
+        if (scores == null || scores.length == 0 || scores[0].length == 0)
+            return res;
+        //create a key - pq map
+        Map<Integer, Queue<Integer>> hmscore = new HashMap<>();
+        //populate the hm
+        for (int[] s: scores){
+            //If (!hm.containsKey(s[0]))
+            //	hm.put(s[0], new PriorityQueue<>());
+            hmscore.putIfAbsent(s[0], new PriorityQueue<>());
+            Queue<Integer> pq = hmscore.get(s[0]);
+            if (pq.size() < 5)
+                pq.offer(s[1]);
+            else if (pq.peek() < s[1]){
+                pq.poll();
+                pq.offer(s[1]);
+            }
+        }
+        //calculate the avg per id
+        for (Map.Entry<Integer, Queue<Integer>> entry: hmscore.entrySet()){
+            Queue<Integer> pq = entry.getValue();
+            Iterator<Integer> iter = pq.iterator();
+            int sum = 0;
+            while (iter.hasNext()){
+                sum += iter.next();
+            }
+            res.put(entry.getKey(), sum / pq.size());
+
+        }
+        return res;
+    }
+
+
+
+
     static class SumCount
     {
         double sum;
@@ -34,6 +70,8 @@ public class Solution1 {
         List<Node>mroot=new ArrayList<>(); //mroot stores global max avg subtree root
         avg.add(Double.MIN_VALUE);
         mroot.add(root);
+        dfs(root,avg,mroot); //postorder to find max subtree
+        dfs(root,avg,mroot); //postorder to find max subtree
         dfs(root,avg,mroot); //postorder to find max subtree
         return mroot.get(0);
     }

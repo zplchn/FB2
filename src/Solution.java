@@ -5,42 +5,21 @@ import java.util.*;
  */
 public class Solution {
 
-    public Map<Integer, Integer> top5(int[][] scores){
-        Map<Integer, Integer> res = new HashMap<>();
-        if (scores == null || scores.length == 0 || scores[0].length == 0)
-        return res;
-        //create a key - pq map
-        Map<Integer, Queue<Integer>> hmscore = new HashMap<>();
-        //populate the hm
-        for (int[] s: scores){
-            //If (!hm.containsKey(s[0]))
-            //	hm.put(s[0], new PriorityQueue<>());
-            hmscore.putIfAbsent(s[0], new PriorityQueue<>());
-            Queue<Integer> pq = hmscore.get(s[0]);
-            if (pq.size() < 5)
-            pq.offer(s[1]);
-            else if (pq.peek() < s[1]){
-                pq.poll();
-                pq.offer(s[1]);
-            }
+    //9
+    public boolean isPalindrome(int x) {
+        if (x < 0)
+            return false;
+        int div = 1;
+        while (x / div >= 10)
+            div *= 10;
+        while (x > 0){ //here must > 0 like 1021 , 1000021 should return false
+            if (x / div != x % 10)
+                return false;
+            x = x % div / 10;
+            div /= 100;
         }
-        //calculate the avg per id
-        for (Map.Entry<Integer, Queue<Integer>> entry: hmscore.entrySet()){
-            Queue<Integer> pq = entry.getValue();
-            Iterator<Integer> iter = pq.iterator();
-            int sum = 0;
-            while (iter.hasNext()){
-                sum += iter.next();
-            }
-            res.put(entry.getKey(), sum / pq.size());
-
-        }
-        return res;
+        return true;
     }
-
-
-
-
 
     //76
     public String minWindow(String s, String t) {
@@ -279,6 +258,54 @@ public class Solution {
             }
             return false;
         }
+    }
+
+    //212
+    public List<String> findWords(char[][] board, String[] words) {
+        List<String> res = new ArrayList<>();
+        if (board == null || board.length == 0 || board[0].length == 0 || words == null || words.length == 0)
+            return res;
+        TrieNode troot = buildTrie(words);
+        Set<String> hs = new HashSet<>();
+        for (int i = 0; i < board.length; ++i){
+            for (int j = 0; j < board[0].length; ++j){
+                findHelper(board, i, j, troot, new StringBuilder(), hs);
+            }
+        }
+        res.addAll(hs);
+        return res;
+    }
+
+    private TrieNode buildTrie(String[] words){
+        TrieNode root = new TrieNode(), tr = root;
+        for (String w : words){
+            tr = root;
+            for (int i = 0; i < w.length(); ++i){
+                int off = w.charAt(i) - 'a';
+                if (tr.children[off] == null)
+                    tr.children[off] = new TrieNode();
+                tr = tr.children[off];
+            }
+            tr.isWord = true;
+        }
+        return root;
+    }
+    private final int[][] off = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
+    private void findHelper(char[][] board, int i, int j, TrieNode root, StringBuilder sb, Set<String> hs){
+        if (root.isWord){
+            hs.add(sb.toString());
+        }
+        if (i < 0 || i >= board.length || j < 0 || j >= board[0].length || (board[i][j] & 256) != 0 || root.children[board[i][j] - 'a'] == null)
+            return;
+        sb.append(board[i][j]);
+        root = root.children[board[i][j] - 'a']; //this must before xor 256!!
+        board[i][j]^= 256; //Need visited!!!
+        for (int[] o : off){
+            int x = i + o[0], y = j + o[1];
+            findHelper(board, x, y, root, sb, hs);
+        }
+        sb.deleteCharAt(sb.length() - 1);
+        board[i][j]^= 256;
     }
 
     //220
