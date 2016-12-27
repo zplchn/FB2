@@ -117,6 +117,27 @@ public class Solution1 {
         System.out.println(n.val);
     }
 
+    //5
+    public String longestPalindrome(String s) {
+        if (s == null || s.length() == 0)
+            return s;
+        boolean[][] dp = new boolean[s.length()][s.length()]; //dp[i][j] indicates whether substring s[i...j] is a palindrome
+        int max = 0, l = 0, r = 0; //log for global longest along with the start l and end r indices
+        for (int i = s.length() - 1; i >= 0; --i){
+            for (int j = i; j < s.length(); ++j){ //left side starts off right to left, right side from start to the end
+                if (s.charAt(i) == s.charAt(j) && (j - i <= 2 || dp[i+1][j-1])){ //the inner side is already calculated
+                    dp[i][j] = true;
+                    if (j - i + 1 > max){ //log global longest
+                        max = j - i + 1;
+                        l = i;
+                        r = j;
+                    }
+                }
+            }
+        }
+        return s.substring(l, r + 1); //take the longest substring
+    }
+
 
 
 

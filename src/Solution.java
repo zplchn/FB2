@@ -208,6 +208,26 @@ public class Solution {
         return x;
     }
 
+    //202
+    public boolean isHappy(int n) {
+        if (n < 1)
+            return false;
+        Set<Integer> hs = new HashSet<>();
+        while (n != 1){
+            int t = 0;
+            while (n != 0){
+                int x = n % 10;
+                t += x * x;
+                n /= 10;
+            }
+            if (hs.contains(t))
+                return false;
+            hs.add(t);
+            n = t;
+        }
+        return true;
+    }
+
     //211
     public class WordDictionary {
         class TrieNode{
@@ -550,6 +570,50 @@ public class Solution {
                 return true;
         }
         return false;
+    }
+
+    //346
+    public class MovingAverage {
+        private Queue<Integer> queue;
+        private double sum;
+        private int size;
+        /** Initialize your data structure here. */
+        public MovingAverage(int size) {
+            this.size = size;
+            queue = new LinkedList<>();
+        }
+
+        public double next(int val) {
+            if (queue.size() == size){
+                sum -= queue.poll();//dont adjust size
+            }
+            queue.offer(val);
+            sum += val;
+            return sum / queue.size();
+        }
+    }
+
+    //356
+    public boolean isReflected(int[][] points) {
+        //for a y symmetry axis. it would be x = (minx + maxx)/2, so we should find minx and maxx. and for each point check if the symmeric point exist. so we need to store them into a hashset
+        if (points == null || points.length == 0)
+            return true;
+        //note new int[] cannot be used as hashkey. cuz not compare content; use string instead
+        int minx = points[0][0], maxx = points[0][0];
+        Set<String> hs = new HashSet<>();
+        for (int[] p : points){
+            minx = Math.min(minx, p[0]);
+            maxx = Math.max(maxx, p[0]);
+            hs.add(p[0] + ":" + p[1]);
+        }
+        long t = minx + maxx;
+        //java's hashmap iterator can only get from entrySet()
+        for (int[] p: points){
+            int sk = (int)(t - p[0]);
+            if (!hs.contains(sk + ":" + p[1]))
+                return false;
+        }
+        return true;
     }
 
     //382
