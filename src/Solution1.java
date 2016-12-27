@@ -138,6 +138,51 @@ public class Solution1 {
         return s.substring(l, r + 1); //take the longest substring
     }
 
+    //305
+    public List<Integer> numIslands2(int m, int n, int[][] positions) {
+        //Union-Find problem. Union - combine two connected set; Find - check if two obj belong same connected set
+        //complxity o(MlogN) M -#of unions N - total # of obj
+        List<Integer> res = new ArrayList<>();
+        if (m <= 0 || n <= 0 || positions == null || positions.length == 0 || positions[0].length == 0)
+            return res;
+        //union find needs to create an extra space id[] size = input
+        int[] id = new int[m * n];
+        Arrays.fill(id, -1); //initially all nodes belong to a dark -1 set - water
+        int count = 0;
+
+        for (int[] p : positions){
+            int idx = p[0] * n + p[1];
+            id[idx] = idx; //doesnt matter what id we give this time. we will union later
+            ++count;
+
+            //now find all 4 neighbours. Note we just need to look the 4 neighbours.
+            //NOT DFS. because they all have an asscociate id. we just see if can union - one island
+            int[][] off = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
+            for (int[] o: off){
+                int x = p[0] + o[0], y = p[1] + o[1], newIdx = x * n + y;
+                //still do valid check of indices and if is valid set
+                if (x >= 0 && x < m && y >= 0 && y < n && id[newIdx] != -1) { //not water set
+                    //union. make their index = mine
+                    int root = root(id, newIdx);
+                    if (root != idx) { //may have dup input positions
+                        id[root] = idx; //union. set as children under idx
+                        --count; //every union decrease the count(number of set) by 1
+                    }
+                }
+            }
+            res.add(count); //every time log count
+        }
+        return res;
+    }
+
+    private int root(int[] id, int i){ //quick union + path compression
+        while (id[i] != i){
+            id[i] = id[id[i]]; //path compression
+            i = id[i];
+        }
+        return i;
+    }
+
 
 
 
