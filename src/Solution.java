@@ -138,6 +138,44 @@ public class Solution {
         connect(root.right);
     }
 
+    //138
+    class RandomListNode{
+        int label;
+        RandomListNode next, random;
+        RandomListNode(int x){label = x;}
+    }
+    public RandomListNode copyRandomList(RandomListNode head) {
+        // use 3 steps: 1. create copy node right after each current node 2. set random link 3. split
+        if (head == null)
+            return head;
+
+        // 1. create copy as node1 -> copy1 -> node2-> copy2...
+        RandomListNode cur = head;
+        while (cur != null){
+            RandomListNode next = cur.next;
+            cur.next = new RandomListNode(cur.label);
+            cur.next.next = next;
+            cur = next;
+        }
+        // 2. set random pointer
+        cur = head;
+        while (cur != null){
+            cur.next.random = cur.random == null? null: cur.random.next;
+            cur = cur.next.next;
+        }
+
+        // 3. split
+        RandomListNode dummy = new RandomListNode(0), pre = dummy;
+        cur = head;
+        while (cur != null){
+            pre.next = cur.next;
+            pre = pre.next;
+            cur.next = cur.next.next;
+            cur = cur.next;
+        }
+        return dummy.next;
+    }
+
     //155
     public class MinStack {
         private Deque<Integer> st;
@@ -516,9 +554,51 @@ public class Solution {
     }
 
     //301
-//    public List<String> removeInvalidParentheses(String s) {
-//
-//    }
+    public List<String> removeInvalidParentheses(String s) {
+        List<String> res = new ArrayList<>();
+        if (s == null) //""is a valid output
+            return res;
+        int l = 0, r = 0;
+        for (int i = 0; i < s.length(); i++) {
+            if (s.charAt(i) == '(')
+                ++l;
+            else if (s.charAt(i) == ')'){
+                if (l > 0)
+                    --l;
+                else
+                    ++r; //")(" int this case when right is more, we also increase r and the subsequent l will also be counted
+            }
+        }
+
+        dfs(s, 0, res, new StringBuilder(), l, r, 0);
+        Set<String> hs = new HashSet<>(res);
+
+        return new ArrayList<String>(hs);
+    }
+
+    public void dfs(String s, int i, List<String> res, StringBuilder sb, int rml, int rmr, int open) {
+        if (open < 0 || rml < 0 || rmr < 0)
+            return;
+        if (i == s.length()) {
+            if (rml == 0 && rmr == 0 && open == 0) {
+                res.add(sb.toString());
+            }
+            return;
+        }
+        char c = s.charAt(i);
+        int len = sb.length();
+        if (c == '(') {
+            dfs(s, i + 1, res, sb, rml - 1, rmr, open);
+            dfs(s, i + 1, res, sb.append(c), rml, rmr, open + 1);
+        }
+        else if (c == ')') {
+            dfs(s, i + 1, res, sb, rml, rmr - 1, open);
+            dfs(s, i + 1, res, sb.append(c), rml, rmr, open - 1);
+        }
+        else
+            dfs(s, i + 1, res, sb.append(c), rml, rmr, open);
+        sb.setLength(len);
+    }
 
     //314
     public List<List<Integer>> verticalOrder(TreeNode root) {
