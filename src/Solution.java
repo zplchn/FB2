@@ -21,6 +21,34 @@ public class Solution {
         return true;
     }
 
+    //38
+    public String countAndSay(int n) {
+        if (n < 1)
+            return "";
+        StringBuilder sb = new StringBuilder("1"), t;
+
+        while (n-- > 1){ //first one is 1. then 11
+            t = new StringBuilder();
+            char c = sb.charAt(0);
+            int cnt = 1;
+
+            for (int i = 1; i < sb.length(); ++i){
+                if (sb.charAt(i) == c)
+                    ++cnt;
+                else {
+                    t.append(cnt);
+                    t.append(c);
+                    c = sb.charAt(i);
+                    cnt = 1;
+                }
+            }
+            t.append(cnt);
+            t.append(c);
+            sb = t;
+        }
+        return sb.toString();
+    }
+
     //76
     public String minWindow(String s, String t) {
         if (s == null || s.length() == 0 || t == null || t.length() == 0)

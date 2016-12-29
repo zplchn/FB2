@@ -6,7 +6,6 @@ import java.util.*;
 
 
 class Node {
-
     int val;
     ArrayList<Node>children;
     public Node(int val){
@@ -15,6 +14,69 @@ class Node {
     }
 }
 public class Solution1 {
+
+    //Minimum spanning tree
+    class Connection{
+        String node1;
+        String node2;
+        int cost;
+        public Connection(String a, String b, int c){
+            node1 = a;
+            node2 = b;
+            cost = c;
+        }
+    }
+
+    public static List<Connection> getLowCost(List<Connection> connections) {
+        List<Connection> res = new ArrayList<>();
+        if (connections == null || connections.isEmpty())
+            return res;
+        // first sort the given connections according to the cost, small to large
+        Collections.sort(connections, new Comparator<Connection>(){
+            @Override
+            public int compare(Connection c1, Connection c2) {
+                return c1.cost - c2.cost;
+            }
+        });
+        // make unionfind structure. assign unique key to each node
+        Map<String, String> hm = new HashMap<>();
+        for (Connection c : connections) {
+            hm.put(c.node1, c.node1);
+            hm.put(c.node2, c.node2);
+        }
+
+        int total = hm.size(), index = 0;
+        while (index < connections.size() && res.size() < total - 1) {
+            Connection cur = connections.get(index++);
+            String root1 = root(cur.node1, hm); //find
+            String root2 = root(cur.node2, hm);
+            if (root1.equals(root2))
+                continue; // already a connected component
+            hm.put(root1, root2); //union
+            res.add(cur);
+        }
+        //insufficient connections to link all nodes. return null
+        if (res.size() != total - 1)
+            return null;
+        //sort result by node1 ascending
+        Collections.sort(res, new Comparator<Connection>(){
+            @Override
+            public int compare(Connection c1, Connection c2){
+                return c1.node1.equals(c2.node1)? c1.node2.compareTo(c2.node2): c1.node1.compareTo(c2.node1);
+            }
+        });
+        return res;
+    }
+
+    private static String root(String s, Map<String, String> hm){
+        while (!s.equals(hm.get(s))) {
+            s = hm.get(s);
+        }
+        return s;
+    }
+
+
+
 
     public Map<Integer, Integer> top5(int[][] scores){
         Map<Integer, Integer> res = new HashMap<>();
