@@ -294,6 +294,21 @@ public class Solution {
         return true;
     }
 
+    //203
+    public ListNode removeElements(ListNode head, int val) {
+        if (head == null)
+            return head;
+        ListNode dummy = new ListNode(0), pre = dummy;
+        dummy.next = head; //always when use dummy, first see if need dummy.next = head!!!!
+        while (pre.next != null){
+            if (pre.next.val == val)
+                pre.next = pre.next.next;
+            else
+                pre = pre.next;
+        }
+        return dummy.next;
+    }
+
     //211
     public class WordDictionary {
         class TrieNode{
@@ -722,6 +737,43 @@ public class Solution {
                 return false;
         }
         return true;
+    }
+
+    //360
+    public int[] sortTransformedArray(int[] nums, int a, int b, int c) {
+        if (nums == null || nums.length == 0)
+            return nums;
+        int[] res = new int[nums.length];
+        int i = a > 0? nums.length - 1: 0, l = 0, r = res.length - 1;
+        while (l <= r){
+            int lc = calc(nums[l], a, b, c);
+            int rc = calc(nums[r], a, b, c);
+            if (a > 0){
+                if (lc < rc){
+                    res[i--] = rc;
+                    --r;
+                }
+                else {
+                    res[i--] = lc;
+                    ++l;
+                }
+            }
+            else {
+                if (lc < rc){
+                    res[i++] = lc;
+                    ++l;
+                }
+                else {
+                    res[i++] = rc;
+                    --r;
+                }
+            }
+        }
+        return res;
+    }
+
+    private int calc(int x, int a, int b, int c){
+        return a * x * x + b * x + c;
     }
 
     //382

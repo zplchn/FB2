@@ -159,6 +159,66 @@ public class Solution1 {
         return sc; //return current SunCount
     }
 
+    //order
+    class Order{
+        String name;
+        public Order (String name){
+            this.name = name;
+        }
+    }
+
+    class OrderDependency{
+        Order dependent;
+        Order independent;
+        public OrderDependency(Order dependent, Order independent){
+            this.dependent = dependent;
+            this.independent = independent;
+        }
+    }
+
+    public List<Order> findOrder(List<OrderDependency> dependencies){
+        List<Order> res = new ArrayList<>();
+        if (dependencies == null || dependencies.size() == 0)
+            return res;
+        //Initialize two maps
+        Map<String, Integer>      inmap  = new HashMap<>(); //inmap (order, indegree)
+        Map<String, List<String>> outmap = new HashMap<>(); //outmap (order, children_list)
+
+        //construct graph
+        for (OrderDependency i : dependencies){
+            inmap.put(i.dependent.name, inmap.getOrDefault(i.dependent.name, 0) + 1);
+            inmap.put(i.independent.name, 0);
+            outmap.putIfAbsent(i.independent.name, new ArrayList<>());
+            outmap.get(i.independent.name).add(i.dependent.name);
+        }
+
+        //topological sorting use bfs
+        int total = inmap.size();
+        Queue<String>q = new LinkedList<>();
+        for (String s : inmap.keySet()){
+            if (inmap.get(s) == 0)
+                q.offer(s); //start with indegree == 0
+        }
+        while (!q.isEmpty()){
+            String s = q.poll();
+            res.add(new Order(s));
+            if (outmap.containsKey(s)){
+                for (String o: outmap.get(s)){
+                    inmap.put(o, inmap.get(o) - 1);
+                    if (inmap.get(o) == 0)
+                        q.offer(o);
+                }
+            }
+            outmap.remove(s);
+        }
+        if (res.size() != total)
+            return new ArrayList<Order>();
+        return res;
+    }
+
+
+
+
     public static void main(String[] args){
         Node root = new Node(100);
         Node c1 = new Node(20);
