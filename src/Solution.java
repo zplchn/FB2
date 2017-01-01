@@ -553,6 +553,32 @@ public class Solution {
         return min1;
     }
 
+    //295
+    public class MedianFinder {
+        private Queue<Integer> minq = new PriorityQueue<>();
+        private Queue<Integer> maxq = new PriorityQueue<>(Collections.reverseOrder()); //note maxq
+
+        // Adds a number into the data structure.
+        public void addNum(int num) {
+            if (maxq.isEmpty() || num <= maxq.peek())
+                maxq.offer(num);
+            else
+                minq.offer(num);
+            while (maxq.size() > minq.size() + 1)
+                minq.offer(maxq.poll());
+            while (minq.size() > maxq.size())
+                maxq.offer(minq.poll());
+        }
+
+        // Returns the median of current data stream
+        public double findMedian() {
+            if (maxq.size() == minq.size())
+                return (maxq.peek() + minq.peek()) / 2.0;
+            else
+                return (double)(maxq.peek());
+        }
+    }
+
     //297
     public class Codec {
 
