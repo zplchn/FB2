@@ -1,11 +1,5 @@
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
-/**
- * Created by zplchn on 1/1/17.
- */
 public class Thumbtack {
 
     //input data stream range [0, 1000), implement constant space getMean, insert, getMedian operation.
@@ -198,8 +192,5 @@ Which starting number, under one million, produces the longest chain?
         for (String s: ac.findByPrefix("thumb")){ //this for will only executed once
             System.out.println(s);
         }
-
-
-
     }
 }

@@ -19,4 +19,11 @@ public class Test {
 
         s.removeInvalidParentheses(ts);
     }
+
+    public double t1(){
+        int x = 0;
+        char c = 0;
+
+        return x;
+    }
 }

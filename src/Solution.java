@@ -89,6 +89,17 @@ public class Solution {
         return res;
     }
 
+    //89
+    public List<Integer> grayCode(int n) {
+        List<Integer> res = new ArrayList<>();
+        if (n < 0)
+            return res;
+        for (int i = 0; i < (1 << n); ++i){
+            res.add(i ^ (i >> 1)); //it's xor i right shift by 1
+        }
+        return res;
+    }
+
     //90
     public List<List<Integer>> subsetsWithDup(int[] nums) {
         List<List<Integer>> res = new ArrayList<>();
@@ -409,6 +420,25 @@ public class Solution {
         board[i][j]^= 256;
     }
 
+    //213
+    public int rob(int[] nums) {
+        if (nums == null || nums.length == 0)
+            return 0;
+        if (nums.length == 1) // this is must, otherwise dp len = 1, cannot set dp[1]
+            return nums[0];
+        int[] dp = new int[nums.length];
+        dp[1] = nums[0];
+        for (int i = 1; i < nums.length - 1; ++i)
+            dp[i + 1] = Math.max(dp[i], dp[i-1] + nums[i]);
+        int c1 = dp[dp.length - 1];
+        dp = new int[nums.length];
+        dp[1] = nums[1];
+        for (int i = 2; i < nums.length; ++i)
+            dp[i] = Math.max(dp[i-1], dp[i-2] + nums[i]);
+        return Math.max(c1, dp[dp.length - 1]);
+
+    }
+
     //220
     public boolean containsNearbyAlmostDuplicate(int[] nums, int k, int t) {
         //use sliding window size = k, find at any give nums[i] if exists a ceiling or floor number within t's range
@@ -499,6 +529,62 @@ public class Solution {
         return res;
     }
 
+    //244
+    public class WordDistance {
+        private Map<String, List<Integer>> hm;
+
+        public WordDistance(String[] words) {
+            hm = new HashMap<>();
+            if (words == null || words.length == 0)
+                return;
+            for (int i = 0; i < words.length; ++i) {
+                hm.putIfAbsent(words[i], new ArrayList<>());
+                hm.get(words[i]).add(i);
+            }
+        }
+
+        public int shortest(String word1, String word2) {
+            if (word1 == null || word2 == null)
+                return -1;
+            List<Integer> l1 = hm.get(word1);
+            List<Integer> l2 = hm.get(word2);
+            int i1 = 0, i2 = 0, min = Integer.MAX_VALUE;
+            while (i1 < l1.size() && i2 < l2.size()){
+                int id1 = l1.get(i1), id2 = l2.get(i2); //compare value not i1, i2!
+                min = Math.min(min, Math.abs(id1 - id2));
+                if (id1 < id2)
+                    ++i1;
+                else
+                    ++i2;
+            }
+            return min;
+        }
+    }
+
+    //245
+    public int shortestWordDistance(String[] words, String word1, String word2) {
+        if (words == null || words.length == 0 || word1 == null || word2 == null)
+            return -1;
+        int i1 = -1, i2 = -1, min = Integer.MAX_VALUE;
+        boolean isSame = word1.equals(word2);
+
+        for (int i = 0; i < words.length; ++i){
+            if (words[i].equals(word1)){
+                if (isSame && i1 != -1)
+                    min = Math.min(min, i - i1);
+                else if (!isSame && i2 != -1)
+                    min = Math.min(min, i - i2);
+                i1 = i; //dont forget to set this after compare
+            }
+            else if (words[i].equals(word2)){
+                if (i1 != -1)
+                    min = Math.min(min, i - i1);
+                i2 = i;
+            }
+        }
+        return min;
+    }
+
     //247
     public List<String> findStrobogrammatic(int n) {
         List<String> res = new ArrayList<>();
@@ -551,6 +637,48 @@ public class Solution {
             min1id = tmin1id;
         }
         return min1;
+    }
+
+    //268
+    public int missingNumber(int[] nums) {
+        if (nums == null || nums.length == 0)
+            return 0;
+        for (int i = 0; i < nums.length; ++i){
+            if (nums[i] != i && nums[i] < nums.length && nums[nums[i]] != nums[i]){ //Need to check the nums[i] < len cuz it can be
+                int t = nums[nums[i]];
+                nums[nums[i]] = nums[i];
+                nums[i] = t;
+                --i;
+            }
+        }
+        for (int i = 0; i < nums.length; ++i){
+            if (nums[i] != i)
+                return i;
+        }
+        return nums.length;
+    }
+
+    //270
+    public int closestValue(TreeNode root, double target) {
+        if (root == null)
+            return -1;
+        double min = Math.abs(target - root.val);
+        int res = root.val;
+
+        while (root != null){
+            //System.out.println(Math.abs(target - root.val) + " " + min);   4
+            //if (Math.abs(target - root.val) > min)                      1
+            //    break;                                                    3
+            if (Math.abs(target - root.val) < min){ //if we want to find 3.2. at 1 is larger diff, but we cannot stop
+                min = Math.abs(target - root.val);
+                res = root.val;
+            }
+            if (target > root.val)
+                root = root.right;
+            else
+                root = root.left;
+        }
+        return res;
     }
 
     //295
@@ -703,6 +831,37 @@ public class Solution {
         return res;
     }
 
+    //323
+    public int countComponents(int n, int[][] edges) {
+        if (n <= 0 || edges == null || edges.length == 0 || edges[0].length == 0)
+            return n;
+        boolean[] visited = new boolean[n];
+        List<Integer>[] children = new List[n];
+        for (int i = 0; i < n; ++i)
+            children[i] = new ArrayList<>();
+        for (int[] e : edges){
+            children[e[0]].add(e[1]);
+            children[e[1]].add(e[0]);
+        }
+        int res = 0;
+        for (int i = 0; i < visited.length; ++i){
+            if (!visited[i]){
+                ++res;
+                countHelper(i, visited, children);
+            }
+        }
+        return res;
+    }
+
+    private void countHelper(int i, boolean[] visited, List<Integer>[] children){
+        visited[i] = true; //dfs mask self, go to children
+        for (int c : children[i]){
+            if (!visited[c]){
+                countHelper(c, visited, children);
+            }
+        }
+    }
+
     //334
     public boolean increasingTriplet(int[] nums) {
         // need increasing triplet. maintain a min1 and min2. when x > both min1 and min2 meaning it's a triplet. Note min1 needs to be ahead of min2. so when find a new min, min1 cannot flow to min2, simply update. so left to right.
@@ -719,6 +878,22 @@ public class Solution {
                 return true;
         }
         return false;
+    }
+
+    //344
+    public String reverseString(String s) {
+        if (s == null || s.length() <= 1)
+            return s;
+        char[] ca = s.toCharArray();
+        int l = 0, r = ca.length - 1;
+        while (l < r){
+            char t = ca[l];
+            ca[l] = ca[r];
+            ca[r] = t;
+            ++l;
+            --r;
+        }
+        return new String(ca);
     }
 
     //346
@@ -740,6 +915,28 @@ public class Solution {
             sum += val;
             return sum / queue.size();
         }
+    }
+
+    //347
+    public List<Integer> topKFrequent(int[] nums, int k) {
+        List<Integer> res = new ArrayList<>();
+        if (nums == null || nums.length == 0 || k <= 0)
+            return res;
+        Map<Integer, Integer> hm = new HashMap<>();
+        for (int x : nums)
+            hm.put(x, hm.getOrDefault(x, 0) + 1);
+        Queue<Map.Entry<Integer, Integer>> pq = new PriorityQueue<>((e1, e2) -> e1.getValue() - e2.getValue());
+        for (Map.Entry<Integer, Integer> e: hm.entrySet()){
+            if (pq.size() < k)
+                pq.offer(e);
+            else if (e.getValue() > pq.peek().getValue()){
+                pq.poll();
+                pq.offer(e);
+            }
+        }
+        for (Map.Entry<Integer, Integer> e : pq)
+            res.add(e.getKey());
+        return res;
     }
 
     //356
@@ -802,6 +999,32 @@ public class Solution {
         return a * x * x + b * x + c;
     }
 
+    //362
+    public class HitCounter {
+        private TreeMap<Integer, Integer> tm;
+        private int cnt;
+
+        /** Initialize your data structure here. */
+        public HitCounter() {
+            tm = new TreeMap<>();
+        }
+
+        /** Record a hit.
+         @param timestamp - The current timestamp (in seconds granularity). */
+        public void hit(int timestamp) {
+            tm.put(timestamp, tm.getOrDefault(timestamp, 0) + 1);
+            ++cnt;
+        }
+
+        /** Return the number of hits in the past 5 minutes.
+         @param timestamp - The current timestamp (in seconds granularity). */
+        public int getHits(int timestamp) {
+            while (!tm.isEmpty() && timestamp - tm.firstKey() >= 300) //need to first check tm is empty before get firstKey()
+                cnt -= tm.pollFirstEntry().getValue();
+            return cnt;
+        }
+    }
+
     //382
     public class Solution2 {
         private ListNode head;
@@ -825,6 +1048,18 @@ public class Solution {
             }
             return res;
         }
+    }
+
+    //389
+    public char findTheDifference(String s, String t) {
+        if (s == null || t == null)
+            return 0;
+        char res = 0; // char c = 0; is a valid statement!
+        for (char c : s.toCharArray())
+            res ^= c;
+        for (char c : t.toCharArray())
+            res ^= c;
+        return res;
     }
 
     //398
