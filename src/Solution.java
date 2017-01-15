@@ -21,6 +21,94 @@ public class Solution {
         return true;
     }
 
+    //19
+    public ListNode removeNthFromEnd(ListNode head, int n) {
+        if (head == null)
+            return null;
+        ListNode dummy = new ListNode(0), pre = dummy, cur = dummy; // cur start from dummy!
+        dummy.next = head;
+        while (n > 0 && cur != null && cur.next != null){
+            cur = cur.next;
+            --n;
+        }
+        if (n > 0)
+            return head;
+        while (cur != null && cur.next != null){
+            cur = cur.next;
+            pre = pre.next;
+        }
+        pre.next = pre.next.next;
+        return dummy.next;
+    }
+
+    //24
+    public ListNode swapPairs(ListNode head) {
+        if (head == null)
+            return head;
+        ListNode dummy = new ListNode(0), pre = dummy, cur = head;
+        dummy.next = head;
+        while (cur != null && cur.next != null){
+            ListNode next = cur.next.next;
+            pre.next = cur.next;
+            cur.next.next = cur;
+            cur.next = next; //dont miss this!
+            pre = cur;
+            cur = next;
+        }
+        return dummy.next;
+    }
+
+    //29
+    public int divide(int dividend, int divisor) {
+        if (divisor == 0 || (dividend == Integer.MIN_VALUE && divisor == -1))
+            return Integer.MAX_VALUE;
+        //cannot carry sign, like -6 / 2. so first remove sign, Math.abs(int.min_value) == Integer.MIN_VALUE, a neg number !!!
+        long dvd = Math.abs((long)dividend);
+        long dvs = Math.abs((long)divisor);
+        int res = 0;
+        //dvd = dvs * ([0|1]2^n + [2^n-1] + ... + [2] + 1), any number can be expressed as a combi of power of 2
+
+        while (dvd >= dvs){
+            int i = 0;
+            while (dvd >= (dvs << i))
+                ++i;
+            --i;
+            res += 1 << i;
+            dvd -= dvs << i;
+        }
+        return ((dividend ^ divisor) >>> 31) == 1? -res: res; //note >>> moves sign bit!!
+    }
+
+    //31
+    public void nextPermutation(int[] nums) {
+        if (nums == null || nums.length <= 1)
+            return;
+        int i = nums.length - 2;
+        while (i >= 0 && nums[i] >= nums[i + 1])
+            --i;
+        if (i < 0){
+            reverse(nums, 0, nums.length - 1);
+            return;
+        }
+        int j = nums.length - 1;
+        while (nums[j] <= nums[i])
+            --j;
+        swap(nums, i, j);
+        reverse(nums, i + 1, nums.length - 1);
+    }
+
+    private void reverse(int[] nums, int l, int r){
+        while (l < r){
+            swap(nums, l++, r--);
+        }
+    }
+
+    private void swap(int[] nums, int i, int j){
+        int t = nums[i];
+        nums[i] = nums[j];
+        nums[j] = t;
+    }
+
     //38
     public String countAndSay(int n) {
         if (n < 1)
@@ -47,6 +135,17 @@ public class Solution {
             sb = t;
         }
         return sb.toString();
+    }
+
+    //58
+    public int lengthOfLastWord(String s) {
+        if (s == null)
+            return 0;
+        s = s.trim();
+        if (s.isEmpty())
+            return 0;
+        String[] tokens = s.split("\\s+"); //when all space, return an empty array
+        return tokens[tokens.length - 1].length();
     }
 
     //76
@@ -147,6 +246,42 @@ public class Solution {
         return s.length() > 0 && s.length() <= 3 && (s.length() > 1? s.charAt(0) != '0': true) && Integer.parseInt(s) <= 255;
     }
 
+    //97
+    public boolean isInterleave(String s1, String s2, String s3) {
+        if (s1 == null || s2 == null || s1.length() + s2.length() != s3.length())
+            return false;
+        boolean[][] dp = new boolean[s1.length() + 1][s2.length() + 1];
+
+        for (int i = 0; i <= s1.length(); ++i){
+            for (int j = 0; j <= s2.length(); ++j){
+                if (i == 0 && j == 0)
+                    dp[i][j] = true;
+                else if (i == 0)
+                    dp[0][j] = dp[0][j-1] && s2.charAt(j-1) == s3.charAt(j-1);
+                else if (j == 0)
+                    dp[i][0] = dp[i-1][0] && s1.charAt(i-1) == s3.charAt(i-1);
+                else
+                    dp[i][j] = (s1.charAt(i-1) == s3.charAt(i + j - 1) && dp[i-1][j]) || (s2.charAt(j-1) == s3.charAt(i + j - 1) && dp[i][j-1]);
+            }
+        }
+        return dp[dp.length - 1][dp[0].length - 1];
+    }
+
+    //101
+    public boolean isSymmetric(TreeNode root) {
+        if (root == null)
+            return true;
+        return isSymHelper(root.left, root.right);
+    }
+
+    private boolean isSymHelper(TreeNode l, TreeNode r){ //mirror by itself
+        if (l == null)
+            return r == null;
+        if (r == null)
+            return false;
+        return l.val == r.val && isSymHelper(l.left, r.right) && isSymHelper(l.right, r.left);
+    }
+
     //111
     public int minDepth(TreeNode root) {
         if (root == null)
@@ -215,6 +350,23 @@ public class Solution {
         return dummy.next;
     }
 
+    //154
+    public int findMin(int[] nums) {
+        if (nums == null || nums.length == 0)
+            return -1;
+        int l = 0, r = nums.length - 1, m;
+        while (l < r){ //this q needs not having = for cases like [3,1,2]
+            m = l + ((r - l) >> 1);
+            if (nums[m] < nums[r])
+                r = m;
+            else if (nums[m] > nums[r])
+                l = m + 1;
+            else
+                --r;
+        }
+        return nums[l];
+    }
+
     //155
     public class MinStack {
         private Deque<Integer> st;
@@ -244,6 +396,20 @@ public class Solution {
         public int getMin() {
             return mt.peek();
         }
+    }
+
+    //198
+    public int rob1(int[] nums) {
+        if (nums == null || nums.length == 0)
+            return 0;
+        int[] dp = new int[3];
+        dp[1] = dp[2] = nums[0];
+        for (int i = 1; i < nums.length; ++i) {
+            dp[2] = Math.max(dp[1], dp[0] + nums[i]);
+            dp[0] = dp[1];
+            dp[1] = dp[2];
+        }
+        return dp[2];
     }
 
     //200 Union find's complexity is o(klogmn) k is # of unions mn is total input. while dfs is o(mn)
@@ -318,6 +484,21 @@ public class Solution {
                 pre = pre.next;
         }
         return dummy.next;
+    }
+
+    //209
+    public int minSubArrayLen(int s, int[] nums) {
+        if (nums == null || nums.length == 0)
+            return 0;
+        int res = nums.length + 1, sum = 0;
+        for (int l = 0, r = 0; r < nums.length; ++r){
+            sum += nums[r];
+            while (l <= r && sum >= s){
+                res = Math.min(res, r - l + 1);
+                sum -= nums[l++];
+            }
+        }
+        return res > nums.length ? 0 : res;
     }
 
     //211
@@ -426,17 +607,44 @@ public class Solution {
             return 0;
         if (nums.length == 1) // this is must, otherwise dp len = 1, cannot set dp[1]
             return nums[0];
-        int[] dp = new int[nums.length];
-        dp[1] = nums[0];
-        for (int i = 1; i < nums.length - 1; ++i)
-            dp[i + 1] = Math.max(dp[i], dp[i-1] + nums[i]);
-        int c1 = dp[dp.length - 1];
-        dp = new int[nums.length];
-        dp[1] = nums[1];
-        for (int i = 2; i < nums.length; ++i)
-            dp[i] = Math.max(dp[i-1], dp[i-2] + nums[i]);
-        return Math.max(c1, dp[dp.length - 1]);
+        int c1 = robHelper(nums, 0, nums.length - 2);
+        int c2 = robHelper(nums, 1, nums.length - 1);
+        return Math.max(c1, c2);
+    }
 
+    private int robHelper(int[] nums, int l, int r){
+        int[] dp = new int[3];
+        dp[1] = dp[2] = nums[l]; //when only 1 element, still need to initialize dp[2]
+        for (int i = l + 1; i <= r; ++i){
+            dp[2] = Math.max(dp[1], dp[0] + nums[i]);
+            dp[0] = dp[1];
+            dp[1] = dp[2];
+        }
+        return dp[2];
+    }
+
+    //216
+    public List<List<Integer>> combinationSum3(int k, int n) {
+        List<List<Integer>> res = new ArrayList<>();
+        if (k <= 0 || n <= 0)
+            return res;
+        combiHelper(k, n, 1, 0, new ArrayList<Integer>(), res);
+        return res;
+    }
+
+    private void combiHelper(int k, int n, int i, int sum, List<Integer> combi, List<List<Integer>> res){
+        if (k == 0){
+            if (sum == n) //only when sum == target
+                res.add(new ArrayList<>(combi));
+            return;
+        }
+        for (int j = i; j <= 9; ++j){
+            if (sum + j <= n){
+                combi.add(j);
+                combiHelper(k - 1, n, j + 1, sum + j, combi, res);
+                combi.remove(combi.size() - 1);
+            }
+        }
     }
 
     //220
@@ -459,6 +667,39 @@ public class Solution {
         return false;
     }
 
+    //225
+    class MyStack {
+        private Queue<Integer> q1 = new LinkedList<>();
+        private Queue<Integer> q2 = new LinkedList<>();
+
+        // Push element x onto stack.
+        public void push(int x) {
+            q1.offer(x);
+        }
+
+        // Removes the element on top of the stack.
+        public void pop() {
+            while (q1.size() > 1)
+                q2.offer(q1.poll());
+            q1.poll();
+            Queue<Integer> t = q1; //only when pop the last one in q1 need swap q1 and q2
+            q1 = q2;
+            q2 = t;
+        }
+
+        // Get the top element.
+        public int top() { //top does not need to swap
+            while (q1.size() > 1)
+                q2.offer(q1.poll());
+            return q1.peek();
+        }
+
+        // Return whether the stack is empty.
+        public boolean empty() {
+            return q1.isEmpty();
+        }
+    }
+
     //226
     public TreeNode invertTree(TreeNode root) {
         if (root == null)
@@ -469,6 +710,26 @@ public class Solution {
         invertTree(root.left);
         invertTree(root.right);
         return root;
+    }
+
+    //228
+    public List<String> summaryRanges(int[] nums) {
+        List<String> res = new ArrayList<>();
+        if (nums == null || nums.length == 0)
+            return res;
+        for (int l = 0, r = 1; r <= nums.length; ++r){
+            if (r == nums.length || nums[r] != nums[r-1] + 1){
+                res.add(summaryHelper(nums[l], nums[r-1]));
+                l = r;
+            }
+        }
+        return res;
+    }
+
+    private String summaryHelper(int l, int r){
+        if (l == r)
+            return String.valueOf(l);
+        return l + "->" + r;
     }
 
     //230
@@ -505,6 +766,25 @@ public class Solution {
         for (int i = res.length - 1; i >= 0; --i){
             res[i] *= t;
             t *= nums[i];
+        }
+        return res;
+    }
+
+    //239
+    public int[] maxSlidingWindow(int[] nums, int k) {
+        if (nums == null || nums.length == 0 || k <= 0)
+            return new int[0];
+        int[] res = new int[nums.length - k + 1];
+        Deque<Integer> deque = new ArrayDeque<>();
+        for (int i = 0, j = 0; i < nums.length; ++i){
+            while (!deque.isEmpty() && nums[i] > deque.peekLast()) //if equal, do not poll
+                deque.pollLast();
+            deque.offer(nums[i]);
+            if (i >= k - 1){
+                res[j++] = deque.peekFirst();
+                if (nums[i - k + 1] == deque.peekFirst())
+                    deque.pollFirst();
+            }
         }
         return res;
     }
@@ -614,6 +894,71 @@ public class Solution {
         }
     }
 
+    //249
+    public List<List<String>> groupStrings(String[] strings) {
+        List<List<String>> res = new ArrayList<>();
+        if (strings == null || strings.length == 0)
+            return res;
+        Map<String, List<String>> hm = new HashMap<>();
+        for (String s : strings){
+            String pattern = getPattern(s);
+            hm.putIfAbsent(pattern, new ArrayList<>());
+            hm.get(pattern).add(s);
+        }
+        res.addAll(hm.values());
+        return res;
+    }
+
+    private String getPattern(String s){
+        if (s == null || s.length() == 0)
+            return s;
+        char c = s.charAt(0);
+        StringBuilder sb = new StringBuilder();
+        for (char cc : s.toCharArray()){
+            sb.append((cc - c + 26) % 26); //"za", "ba" consider rotation
+            sb.append(",");
+        }
+        return sb.toString();
+    }
+
+    //256
+    public int minCost(int[][] costs) {
+        if (costs == null || costs.length == 0 || costs[0].length != 3)
+            return 0;
+        for (int i = 1; i < costs.length; ++i){
+            for (int j = 0; j < costs[0].length; ++j){
+                costs[i][j] += Math.min(costs[i-1][(j + 1)%3], costs[i-1][(j+2)%3]); //last row!
+            }
+        }
+        int res = Integer.MAX_VALUE;
+        for (int j = 0; j < costs[0].length; ++j){
+            res = Math.min(costs[costs.length - 1][j], res);
+        }
+        return res;
+    }
+
+    //259
+    public int threeSumSmaller(int[] nums, int target) {
+        if (nums == null || nums.length == 0)
+            return 0;
+        Arrays.sort(nums);
+        int res = 0;
+        for (int i = 0; i < nums.length -2; ++i){
+            int l = i + 1, r = nums.length - 1;
+            while (l < r){
+                int sum = nums[i] + nums[l] + nums[r];
+                if (sum < target){
+                    res += r - l; //this q requires index is unique. not filter dup by value!!!
+                    ++l;
+                }
+                else {
+                    --r;
+                }
+            }
+        }
+        return res;
+    }
+
     //265
     public int minCostII(int[][] costs) {
         if (costs == null || costs.length == 0 || costs[0].length == 0)
@@ -679,6 +1024,110 @@ public class Solution {
                 root = root.left;
         }
         return res;
+    }
+
+    //279
+    public int numSquares(int n) {
+        if (n <= 0)
+            return 0;
+        int[] dp = new int[n + 1];
+        Arrays.fill(dp, n + 1);
+        dp[0] = 0; // dont forget these intial
+        for (int i = 1; i < dp.length; ++i){
+            for (int j = 1; i - j * j >= 0; ++j){
+                dp[i] = Math.min(dp[i], dp[i- j * j] + 1);
+            }
+        }
+        return dp[dp.length - 1];
+    }
+
+    //282
+    public List<String> addOperators(String num, int target) {
+        List<String> res = new ArrayList<>();
+        if (num == null || num.length() == 0)
+            return res;
+        addHelper(num, target, 0, 0, 0,"", res);
+        return res;
+    }
+
+    private void addHelper(String num, int target, int i,  long pre, long last, String combi, List<String> res){
+        if (i == num.length()){
+            if (pre == target)
+                res.add(combi);
+            return;
+        }
+        for (int j = i + 1; j <= num.length(); ++j){
+            String sub = num.substring(i, j);
+            if (sub.length() > 1 && sub.charAt(0) == '0') //multi-length string to int always check leading 0
+                break;
+            long x = Long.parseLong(sub); //multi-length string to int always consider overflow
+            if (x > Integer.MAX_VALUE)
+                break;
+            if (i == 0)
+                addHelper(num, target, j, x, x, sub, res);
+            else {
+                addHelper(num, target, j, pre + x, x, combi + "+" + sub, res);
+                addHelper(num, target, j, pre - x, -x, combi + "-" + sub, res);
+                addHelper(num, target, j, pre - last + last * x, last * x, combi + "*" + sub, res);
+            }
+        }
+    }
+
+    //288
+    public class ValidWordAbbr {
+        private Map<String, Set<String>> hm;
+
+        public ValidWordAbbr(String[] dictionary) {
+            hm = new HashMap<>();
+            if (dictionary == null || dictionary.length == 0)
+                return;
+            for (String s : dictionary){
+                String abbr = getAbbr(s);
+                hm.putIfAbsent(abbr, new HashSet<>());
+                hm.get(abbr).add(s);
+            }
+        }
+
+        private String getAbbr(String s){
+            if (s == null || s.length() <= 2)
+                return s;
+            StringBuilder sb = new StringBuilder();
+            sb.append(s.charAt(0));
+            sb.append(s.length() - 2);
+            sb.append(s.charAt(s.length() - 1));
+            return sb.toString();
+        }
+
+        public boolean isUnique(String word) {
+            String abbr = getAbbr(word);
+            if (!hm.containsKey(abbr)) //no other words in dict ==> abbr not exist in the dict; exist but is the word itself
+                return true;
+            else if (hm.get(abbr).size() == 1 && hm.get(abbr).contains(word))
+                return true;
+            return false;
+        }
+    }
+
+    //290
+    public boolean wordPattern(String pattern, String str) {
+        if (pattern == null || str == null || pattern.length() == 0 || str.length() == 0)
+            return false;
+        String[] tokens = str.split("\\s+");
+        if (pattern.length() != tokens.length) //need to first check this to prevent array length go off bound
+            return false;
+        Map<Character, String> hm = new HashMap<>();
+        for (int i = 0; i < pattern.length(); ++i){
+            if (hm.containsKey(pattern.charAt(i))){
+                if (!hm.get(pattern.charAt(i)).equals(tokens[i]))
+                    return false;
+            }
+            else {
+                if (hm.containsValue(tokens[i]))
+                    return false;
+                hm.put(pattern.charAt(i), tokens[i]);
+            }
+        }
+        return true;
     }
 
     //295
@@ -797,6 +1246,24 @@ public class Solution {
         sb.setLength(len);
     }
 
+    //311
+    public int[][] multiply(int[][] A, int[][] B) {
+        if (A == null || B == null || A.length == 0 || B.length == 0)
+            return new int[0][]; //note how 2-d empty array is created
+        int[][] res = new int[A.length][B[0].length];
+        for (int i = 0; i < A.length; ++i){
+            for (int j = 0; j < A[0].length; ++j){
+                if (A[i][j] != 0){
+                    for (int k = 0; k < B[0].length; ++k){
+                        if (B[j][k] != 0)
+                            res[i][k] += A[i][j] * B[j][k];
+                    }
+                }
+            }
+        }
+        return res;
+    }
+
     //314
     public List<List<Integer>> verticalOrder(TreeNode root) {
         List<List<Integer>> res = new ArrayList<>();
@@ -878,6 +1345,89 @@ public class Solution {
                 return true;
         }
         return false;
+    }
+
+    //337
+    public int rob(TreeNode root) {
+        if (root == null)
+            return 0;
+        int[] res = robHelper(root);
+        return res[1];
+    }
+
+    private int[] robHelper(TreeNode root){
+        int[] res = {0, 0}; //{pre, cur}
+        if (root == null)
+            return res;
+        int[] lr = robHelper(root.left);
+        int[] rr = robHelper(root.right);
+        res[0] = lr[1] + rr[1]; //pre is last cur sum
+        res[1] = Math.max(res[0], lr[0] + rr[0] + root.val);
+        return res;
+    }
+
+    //340
+    public int lengthOfLongestSubstringKDistinct(String s, int k) {
+        if (s == null || s.length() == 0 || k <= 0)
+            return 0;
+        Map<Character, Integer> hm = new HashMap<>();
+        int res = 0;
+        for (int l = 0, r = 0; r < s.length(); ++r){
+            hm.put(s.charAt(r), hm.getOrDefault(s.charAt(r), 0) + 1);
+
+            while (hm.size() > k){
+                char c = s.charAt(l++);
+                int cnt = hm.get(c) - 1;
+                if (cnt == 0)
+                    hm.remove(c);
+                else
+                    hm.put(c, cnt);
+            }
+            res = Math.max(res, r - l + 1);
+        }
+        return res;
+    }
+
+    //341
+    public class NestedIterator implements Iterator<Integer> {
+        private Deque<Iterator<NestedInteger>> st;
+        private Iterator<NestedInteger> iter;
+        private NestedInteger ni;
+
+        public NestedIterator(List<NestedInteger> nestedList) {
+            if (nestedList == null)
+                return;
+            st = new ArrayDeque<>();
+            iter = nestedList.iterator(); //iter is possibly null
+        }
+
+        @Override
+        public Integer next() {
+            //after hasNext(), either return false, or ni is set
+            int x = ni.getInteger();
+            ni = null;
+            return x;
+        }
+
+        @Override
+        public boolean hasNext() {
+            if (iter == null)
+                return false;
+            if (!iter.hasNext()) {
+                if (st.isEmpty())
+                    return false;
+                iter = st.pop();
+                return hasNext();
+            }
+            ni = iter.next();
+            if (ni.isInteger())
+                return true;
+            else {
+                st.push(iter);
+                iter = ni.getList().iterator();
+                return hasNext(); //iter starts same problem when find a next iter
+            }
+        }
     }
 
     //344
@@ -1025,6 +1575,62 @@ public class Solution {
         }
     }
 
+    //367
+    public boolean isPerfectSquare(int num) {
+        if (num < 0)
+            return false;
+        if (num == 0)
+            return true;
+        long l = 1, r = num, m; //change to long prevent overflow
+        while (l <= r){
+            m = l + ((r - l) >> 1);
+            if (m * m < num) //cannot use m < num / m when m = 2, num = 5. lost by integer division
+                l = m + 1;
+            else if (m * m > num)//l cannot start from 0, here will divide by 0
+                r = m - 1;
+            else
+                return true;
+        }
+        return false;
+    }
+
+    //379
+    public class PhoneDirectory {
+        private BitSet bs;
+        private int size, cap;
+
+        /** Initialize your data structure here
+         @param maxNumbers - The maximum numbers that can be stored in the phone directory. */
+        public PhoneDirectory(int maxNumbers) {
+            cap = maxNumbers;
+            bs = new BitSet();
+        }
+
+        /** Provide a number which is not assigned to anyone.
+         @return - Return an available number. Return -1 if none is available. */
+        public int get() {
+            if (size >= cap)
+                return -1;
+            int x = bs.nextClearBit(0); //nextClearBit(int fromIndex) return the first available unset bit's index
+            bs.set(x); //set the bit!!
+            ++size;
+            return x;
+        }
+
+        /** Check if a number is available or not. */
+        public boolean check(int number) {
+            return number >= 0 && number < cap && !bs.get(number);
+        }
+
+        /** Recycle or release a number. */
+        public void release(int number) {
+            if (number >= 0 && number < cap && bs.get(number)){
+                bs.clear(number);
+                --size;
+            }
+        }
+    }
+
     //382
     public class Solution2 {
         private ListNode head;
@@ -1082,5 +1688,40 @@ public class Solution {
             }
             return res;
         }
+    }
+
+    //401
+    public List<String> readBinaryWatch(int num) {
+        //directly count a number's bit by concat hh<<6|mm and use Integer.bitCount(i)
+        List<String> res = new ArrayList<>();
+        if (num < 0)
+            return res;
+        for (int h = 0; h < 12; ++h){ //hh from 0 - 11
+            for (int m = 0; m < 60; ++m){
+                int x = h << 6 | m;
+                if (Integer.bitCount(x) == num)
+                    res.add(String.format("%d:%02d", h, m));
+            }
+        }
+        return res;
+    }
+
+    //463
+    public int islandPerimeter(int[][] grid) {
+        //check a 1 is at edge
+        if (grid == null || grid.length == 0 || grid[0].length == 0)
+            return 0;
+        int res = 0;
+        for (int i = 0; i < grid.length; ++i){
+            for (int j = 0; j < grid[0].length; ++j){
+                if (grid[i][j] == 1){
+                    if (i == 0 || grid[i-1][j] == 0) ++res; //must individually check every direction cuz they can all be true
+                    if (i == grid.length - 1 || grid[i+1][j] == 0) ++res;
+                    if (j == 0 || grid[i][j-1] == 0) ++res;
+                    if (j == grid[0].length - 1 || grid[i][j+1] == 0) ++res;
+                }
+            }
+        }
+        return res;
     }
 }
