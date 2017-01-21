@@ -188,6 +188,22 @@ public class Solution {
         return res;
     }
 
+    //84
+    public int largestRectangleArea(int[] heights) {
+        if (heights == null || heights.length == 0)
+            return 0;
+        Deque<Integer> st = new ArrayDeque<>();
+        int res = 0;
+        for (int i = 0; i <= heights.length; ++i){
+            while (!st.isEmpty() && (i == heights.length || heights[i] < heights[st.peek()])){ //heights[peek] since its index
+                res = Math.max(res, heights[st.pop()] * (st.isEmpty()? i: i - st.peek() - 1));
+            }
+            if (i != heights.length)
+                st.push(i);
+        }
+        return res;
+    }
+
     //89
     public List<Integer> grayCode(int n) {
         List<Integer> res = new ArrayList<>();
@@ -312,6 +328,43 @@ public class Solution {
         connect(root.right);
     }
 
+    //123
+    public int maxProfit(int[] prices) {
+        if (prices == null || prices.length <= 1)
+            return 0;
+        int buy1 = Integer.MIN_VALUE, buy2 = Integer.MIN_VALUE, sell1 = 0, sell2 = 0;
+        for (int p : prices){
+            buy1 = Math.max(buy1, -p); //buy1, buy2, sell1, sell2 means after do the transaction, the money left in our account
+            sell1 = Math.max(sell1, p + buy1);
+            buy2 = Math.max(buy2, sell1 - p);
+            sell2 = Math.max(sell2, buy2 + p);
+        }
+        return sell2;
+    }
+
+    //132
+    public int minCut(String s) {
+        if (s == null || s.length() == 0)
+            return 0;
+        boolean[][] dp = new boolean[s.length()][s.length()];
+        for (int i = s.length() - 1; i >= 0; --i){
+            for (int j = i; j < s.length(); ++j){
+                if (s.charAt(i) == s.charAt(j) && (j - i <= 2 || dp[i+1][j-1]))
+                    dp[i][j] = true;
+            }
+        }
+        int[] dp1 = new int[s.length() + 1];
+        Arrays.fill(dp1, s.length() + 1);
+        dp1[0] = 0;
+        for (int i = 1; i < dp1.length; ++i){
+            for (int j = i; j < dp1.length; ++j){
+                if (dp[i-1][j-1])
+                    dp1[j] = Math.min(dp1[j], dp1[i-1] + 1);
+            }
+        }
+        return dp1[dp1.length - 1] - 1;
+    }
+
     //138
     class RandomListNode{
         int label;
@@ -348,6 +401,32 @@ public class Solution {
             cur = cur.next;
         }
         return dummy.next;
+    }
+
+    //145
+    public List<Integer> postorderTraversal(TreeNode root) {
+        List<Integer> res = new ArrayList<>();
+        if (root == null)
+            return res;
+        Deque<TreeNode> st = new ArrayDeque<>();
+        TreeNode pre = null; //last outputed node, when root null, check if peek's right is the last outputed node.if,then pop
+        while (!st.isEmpty() || root != null){
+            if (root != null){
+                st.push(root);
+                root = root.left;
+            }
+            else {
+                TreeNode tn = st.peek();
+                if (tn.right != null && tn.right != pre){
+                    root = tn.right;
+                }
+                else {
+                    pre = st.pop();
+                    res.add(pre.val);
+                }
+            }
+        }
+        return res;
     }
 
     //154
@@ -396,6 +475,28 @@ public class Solution {
         public int getMin() {
             return mt.peek();
         }
+    }
+
+    //188
+    public int maxProfit(int k, int[] prices) {
+        if (k <= 0 || prices == null || prices.length <= 1)
+            return 0;
+        if (k >= prices.length / 2){
+            int res = 0;
+            for (int i = 1; i < prices.length; ++i)
+                res += prices[i] > prices[i-1]? prices[i] - prices[i-1]: 0;
+            return res;
+        }
+        int[] buy = new int[k+1];
+        int[] sell = new int[k+1];
+        Arrays.fill(buy, Integer.MIN_VALUE);
+        for (int p: prices){
+            for (int i = 1; i <= k; ++i){
+                buy[i] = Math.max(buy[i], sell[i-1] - p);
+                sell[i] = Math.max(sell[i], buy[i] + p);
+            }
+        }
+        return sell[sell.length - 1];
     }
 
     //198
@@ -921,6 +1022,34 @@ public class Solution {
         return sb.toString();
     }
 
+    //254
+    public List<List<Integer>> getFactors(int n) {
+        List<List<Integer>> res = new ArrayList<>();
+        if (n <= 1)
+            return res;
+        factorHelper(n, 2, new ArrayList<Integer>(), res);
+        return res;
+    }
+
+    private void factorHelper(int n, int start, List<Integer> combi, List<List<Integer>> res){
+        if (n == 1){
+            res.add(new ArrayList<>(combi));
+            return;
+        }
+        for (int i = start; i * i <= n; ++i){
+            if (n % i == 0){
+                combi.add(i);
+                factorHelper(n / i, i, combi, res); //combination, cannot have dup , must ascending; 12, 223 ok, 322 no
+                combi.remove(combi.size() - 1);
+            }
+        }
+        if (!combi.isEmpty()){
+            combi.add(n);
+            factorHelper(1, n, combi, res);
+            combi.remove(combi.size() - 1);
+        }
+    }
+
     //256
     public int minCost(int[][] costs) {
         if (costs == null || costs.length == 0 || costs[0].length != 3)
@@ -1003,6 +1132,51 @@ public class Solution {
         return nums.length;
     }
 
+    //269
+    public String alienOrder(String[] words) {
+        if (words == null || words.length < 1)
+            return "";
+        //construct graph
+        Map<Character, Integer> indegree = new HashMap<>();
+        Map<Character, List<Character>> children = new HashMap<>();
+        for (String w : words){ //initialize array for "z" , "z" we still need output "z"; also indegree=0 need have key; no children need have empty list
+            for (char c : w.toCharArray()){
+                indegree.putIfAbsent(c, 0);
+                children.putIfAbsent(c, new ArrayList<>());
+            }
+        }
+
+        for (int i = 0; i < words.length - 1; ++i){
+            int min = Math.min(words[i].length(), words[i+1].length()), j = 0;
+            while (j < min && words[i].charAt(j) == words[i+1].charAt(j))
+                ++j;
+            if (j == min && words[i].length() > words[i+1].length()) //"abc", "ab" in this case, no valid sorting order!!
+                return "";
+            else if (j < min){ //Note: at this point, the first word's char must smaller than the second!!!
+                char c1 = words[i].charAt(j), c2 = words[i+1].charAt(j);
+                indegree.put(c1, indegree.get(c1) + 1);
+                children.get(c2).add(c1);
+            }
+        }
+        //topo sort
+        Queue<Character> queue = new LinkedList<>();
+        StringBuilder sb = new StringBuilder();
+        for (Character k : indegree.keySet()){
+            if (indegree.get(k) == 0)
+                queue.offer(k);
+        }
+        while (!queue.isEmpty()){
+            Character p = queue.poll();
+            sb.append(p);
+            for (Character c : children.get(p)){
+                indegree.put(c, indegree.get(c) - 1);
+                if (indegree.get(c) == 0)
+                    queue.offer(c);
+            }
+        }
+        return sb.length() == indegree.size()? sb.reverse().toString(): ""; //the sb order is big to small, needs reverse
+    }
+
     //270
     public int closestValue(TreeNode root, double target) {
         if (root == null)
@@ -1026,6 +1200,23 @@ public class Solution {
         return res;
     }
 
+    //275
+    public int hIndex(int[] citations) {
+        if (citations == null || citations.length == 0)
+            return 0;
+        int l = 0, r = citations.length - 1, m;
+        while (l <= r){
+            m = l + ((r - l) >> 1);
+            if (citations[m] > citations.length - m) //len is 1 more than index
+                r = m - 1;
+            else if (citations[m] < citations.length - m)
+                l = m + 1;
+            else
+                return citations.length - m;
+        }
+        return citations.length - l;
+    }
+
     //279
     public int numSquares(int n) {
         if (n <= 0)
@@ -1039,6 +1230,32 @@ public class Solution {
             }
         }
         return dp[dp.length - 1];
+    }
+
+    //281
+    public class ZigzagIterator {
+        private List<Iterator<Integer>> iters;
+        private int idx;
+
+        public ZigzagIterator(List<Integer> v1, List<Integer> v2) {
+            iters = new ArrayList<>();
+            if (v1 != null && !v1.isEmpty()) iters.add(v1.iterator());
+            if (v2 != null && !v2.isEmpty()) iters.add(v2.iterator());
+        }
+
+        public int next() {
+            return iters.get(idx++).next();
+        }
+
+        public boolean hasNext() {
+            if (iters.isEmpty())
+                return false;
+            idx %= iters.size(); //mod size here first!!! solve next() case, also solve when remove last one %0's divide by 0 exp
+            if (iters.get(idx).hasNext())
+                return true;
+            iters.remove(idx);
+            return hasNext();
+        }
     }
 
     //282
@@ -1069,6 +1286,40 @@ public class Solution {
                 addHelper(num, target, j, pre + x, x, combi + "+" + sub, res);
                 addHelper(num, target, j, pre - x, -x, combi + "-" + sub, res);
                 addHelper(num, target, j, pre - last + last * x, last * x, combi + "*" + sub, res);
+            }
+        }
+    }
+
+    //286
+    public void wallsAndGates(int[][] rooms) {
+        if (rooms == null || rooms.length == 0 || rooms[0].length == 0)
+            return;
+        //bfs start from all empty in the queue, with a level = 1. whoever grab first means it's closer
+        Queue<int[]> queue = new LinkedList<>();
+        int cur = 0, next = 0, lvl = 1;
+        for (int i = 0; i < rooms.length; ++i){
+            for (int j = 0; j < rooms[0].length; ++j){
+                if (rooms[i][j] == 0){
+                    queue.offer(new int[]{i, j});
+                    ++cur;
+                }
+            }
+        }
+        int[][] off = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
+        while (!queue.isEmpty()){
+            int[] p = queue.poll();
+            for (int[] o : off){
+                int x = p[0] + o[0], y = p[1] + o[1];
+                if (x >= 0 && x < rooms.length && y >= 0 && y < rooms[0].length && rooms[x][y] == Integer.MAX_VALUE){
+                    rooms[x][y] = lvl;
+                    queue.offer(new int[]{x, y});
+                    ++next;
+                }
+            }
+            if (--cur == 0){
+                cur = next;
+                next = 0;
+                ++lvl;
             }
         }
     }
@@ -1244,6 +1495,30 @@ public class Solution {
         else
             dfs(s, i + 1, res, sb.append(c), rml, rmr, open);
         sb.setLength(len);
+    }
+
+    //304
+    public class NumMatrix {
+        private int[][] dp ;
+        public NumMatrix(int[][] matrix) {
+            if (matrix == null || matrix.length == 0 || matrix[0].length == 0)
+                return;
+            dp = new int[matrix.length + 1][matrix[0].length + 1];
+
+            for (int i = 0; i < matrix.length; ++i){
+                int t = 0;
+                for (int j = 0; j < matrix[0].length; ++j){
+                    dp[i+1][j+1] = matrix[i][j] + t + dp[i][j+1];
+                    t += matrix[i][j]; //must use seperate t to sum up to the left ONLY to this row!!!
+                }
+            }
+        }
+
+        public int sumRegion(int row1, int col1, int row2, int col2) {
+            if (dp == null)
+                return 0;
+            return dp[row2+1][col2+1] - dp[row2+1][col1] - dp[row1][col2+1] + dp[row1][col1];
+        }
     }
 
     //311
@@ -1512,6 +1787,35 @@ public class Solution {
         return true;
     }
 
+    //358
+    public String rearrangeString(String str, int k) {
+        if (str == null || str.length() == 0 || k <= 1)
+            return str;
+        //count freq of each char, and need to output high-freq char first using pq
+        Map<Character, Integer> hmfreq = new HashMap<>();
+        for (char c: str.toCharArray()){
+            hmfreq.put(c, hmfreq.getOrDefault(c, 0) + 1);
+        }
+        Queue<Map.Entry<Character, Integer>> pq = new PriorityQueue<>((e1, e2)->e2.getValue() - e1.getValue());
+        pq.addAll(hmfreq.entrySet());
+        //use another hm to store when the next available time(index) that a previous char can insert again
+        Map<Integer, Map.Entry<Character, Integer>> hmnext = new HashMap<>();
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < str.length(); ++i){
+            if (hmnext.containsKey(i))
+                pq.offer(hmnext.get(i));
+            if (pq.isEmpty())
+                return ""; //not enough space
+            Map.Entry<Character, Integer> e = pq.poll();
+            sb.append(e.getKey());
+            if (e.getValue() > 1){
+                e.setValue(e.getValue() - 1); //entry use setValue()
+                hmnext.put(i + k, e);
+            }
+        }
+        return sb.toString();
+    }
+
     //360
     public int[] sortTransformedArray(int[] nums, int a, int b, int c) {
         if (nums == null || nums.length == 0)
@@ -1592,6 +1896,21 @@ public class Solution {
                 return true;
         }
         return false;
+    }
+
+    //377
+    public int combinationSum4(int[] nums, int target) {
+        if (nums == null || nums.length == 0)
+            return 0;
+        Arrays.sort(nums); //this is must
+        int[] dp = new int[target + 1];
+        dp[0] = 1;
+        for (int i = 1; i <= target; ++i){
+            for (int j = 0; j < nums.length && nums[j] <= i; ++j){ //nums[j] <= i!! and requires sort!
+                dp[i] += dp[i - nums[j]];
+            }
+        }
+        return dp[target];
     }
 
     //379

@@ -26,6 +26,7 @@ public class Thumbtack {
 
         public double getMedian() {
             int half = size / 2, m1 = -1, m2 = -1;
+
             for (int i = 0; i < nums.length; ++i) {
                 if (nums[i] != 0) {
                     half -= nums[i];
@@ -38,6 +39,8 @@ public class Thumbtack {
                     }
                 }
             }
+            if (size == 1)
+                    return m1;
             return size % 2 == 0 ? (m1 + m2) / 2.0 : m2;
         }
     }
