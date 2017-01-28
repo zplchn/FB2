@@ -724,6 +724,41 @@ public class Solution {
         return dp[2];
     }
 
+    //215
+    public int findKthLargest(int[] nums, int k) {
+        if (nums == null || nums.length == 0 || k <= 0)
+            return -1;
+        return kthSmallest(nums, 0, nums.length - 1, nums.length - k);
+    }
+
+    private int kthSmallest(int[] nums, int l, int r, int k){
+        if (l > r) //k is larger than maximum number of elements in the array
+            return -1;
+        int pos = partition(nums, l, r);
+        if (pos == k)
+            return nums[pos];
+        else if (pos < k)
+            return kthSmallest(nums, pos + 1, r, k);
+        else
+            return kthSmallest(nums, l, pos - 1, k);
+    }
+
+    private int partition(int[] nums, int l, int r){
+        int i = 0;
+        for (int j = 0; j < r; ++j){
+            if (nums[j] <= nums[r])
+                swap1(nums, i++, j);
+        }
+        swap1(nums, i, r);
+        return i;
+    }
+
+    private void swap1(int[] nums, int i, int j){
+        int t = nums[i];
+        nums[i] = nums[j];
+        nums[j] = t;
+    }
+
     //216
     public List<List<Integer>> combinationSum3(int k, int n) {
         List<List<Integer>> res = new ArrayList<>();
@@ -1392,9 +1427,9 @@ public class Solution {
                 maxq.offer(num);
             else
                 minq.offer(num);
-            while (maxq.size() > minq.size() + 1)
+            if (maxq.size() > minq.size() + 1)
                 minq.offer(maxq.poll());
-            while (minq.size() > maxq.size())
+            if (minq.size() > maxq.size())
                 maxq.offer(minq.poll());
         }
 
@@ -1403,7 +1438,7 @@ public class Solution {
             if (maxq.size() == minq.size())
                 return (maxq.peek() + minq.peek()) / 2.0;
             else
-                return (double)(maxq.peek());
+                return maxq.peek();
         }
     }
 
@@ -1764,6 +1799,42 @@ public class Solution {
         return res;
     }
 
+    //352
+    public class SummaryRanges {
+        private TreeMap<Integer, Interval> tm;
+
+        /** Initialize your data structure here. */
+        public SummaryRanges() {
+            tm = new TreeMap<>();
+        }
+
+        public void addNum(int val) {
+            if (tm.containsKey(val))
+                return;
+            Integer lower = tm.lowerKey(val);
+            Integer higher = tm.higherKey(val);
+
+            //4 cases, if join left and right intervals; join left; join right; new interval itself
+            if (lower != null && higher != null && tm.get(lower).end + 1 == val && val + 1 == higher){
+                tm.get(lower).end = tm.get(higher).end;
+                tm.remove(higher);
+            }
+            else if (lower != null && val <= tm.get(lower).end + 1){
+                tm.get(lower).end = Math.max(tm.get(lower).end, val);
+            }
+            else if (higher != null && val + 1 == higher){
+                tm.put(val, new Interval(val, tm.get(higher).end));
+                tm.remove(higher);
+            }
+            else
+                tm.put(val, new Interval(val, val));
+        }
+
+        public List<Interval> getIntervals() {
+            return new ArrayList<>(tm.values()); //from Collection to List
+        }
+    }
+
     //356
     public boolean isReflected(int[][] points) {
         //for a y symmetry axis. it would be x = (minx + maxx)/2, so we should find minx and maxx. and for each point check if the symmeric point exist. so we need to store them into a hashset
@@ -2021,6 +2092,78 @@ public class Solution {
                 if (Integer.bitCount(x) == num)
                     res.add(String.format("%d:%02d", h, m));
             }
+        }
+        return res;
+    }
+
+    //438
+    public List<Integer> findAnagrams(String s, String p) {
+        List<Integer> res = new ArrayList<>();
+        if (s == null || s.length() == 0 || p == null || p.length() == 0)
+            return res;
+        Map<Character, Integer> hm = new HashMap<>();
+        for (char c : p.toCharArray()){
+            hm.put(c, hm.getOrDefault(c, 0) + 1);
+        }
+        int cnt = 0;
+        for (int l = 0, r = 0; r < s.length(); ++r){
+            char rc = s.charAt(r);
+            if (!hm.containsKey(rc))
+                continue;
+            else
+                hm.put(rc, hm.get(rc) - 1);
+            if (hm.get(rc) >= 0)
+                ++cnt;
+            while (cnt == p.length()){
+                char lc = s.charAt(l);
+                if (!hm.containsKey(lc))
+                    ++l;
+                else if (hm.get(lc) < 0) {
+                    hm.put(lc, hm.get(lc) + 1);
+                    ++l;
+                }
+                else {
+                    if (r - l + 1 == p.length())
+                        res.add(l);
+                    break;
+                }
+            }
+        }
+        return res;
+    }
+
+    //442
+    public List<Integer> findDuplicates(int[] nums) {
+        List<Integer> res = new ArrayList<>();
+        //mark the dest index to be negative. for every nums[i], take the abs and check dest is neg. if yes, add res. else negate dest.
+        for (int i = 0; i < nums.length; ++i){
+            int index = Math.abs(nums[i]) - 1;
+            if (nums[index] < 0)
+                res.add(Math.abs(nums[i]));
+            else
+                nums[index] = -nums[index];
+        }
+        for (int i = 0; i < nums.length; ++i){
+            nums[i] = Math.abs(nums[i]);
+        }
+        return res;
+    }
+
+    //448
+    public List<Integer> findDisappearedNumbers(int[] nums) {
+        List<Integer> res = new ArrayList<>();
+        if (nums == null || nums.length == 0)
+            return res;
+        for (int i = 0; i < nums.length; ++i){
+            int index = Math.abs(nums[i]) - 1; //must do this, the dest can be already negative
+            if (nums[index] > 0)
+                nums[index] = -nums[index];
+        }
+        for (int i = 0; i < nums.length; ++i){
+            if (nums[i] > 0)
+                res.add(i + 1);
+            else
+                nums[i] = -nums[i];
         }
         return res;
     }

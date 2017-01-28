@@ -1,7 +1,4 @@
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by zplchn on 12/27/16.
@@ -13,9 +10,14 @@ public class Test {
 
     public static void main(String[] args){
         Solution s = new Solution();
-        System.out.println("[" + "ab".substring(0, 0) + "]");
 
+        int[] nums = {3,2,1,5,6,4};
+        int k = s.findKthLargest(nums, 2);
+        System.out.println(Arrays.toString(nums));
+        System.out.println(k);
 
+        List<Integer> l = Arrays.asList(1, 2,3);
+        System.out.println(l); //[1, 2, 3] List has toString() method
 
 
 
@@ -58,3 +60,6 @@ public class Test {
         return x;
     }
 }
+
+
+
